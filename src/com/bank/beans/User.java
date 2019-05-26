@@ -1,6 +1,6 @@
 package com.bank.beans;
 
-public abstract class User {
+public class User {
 	private int id;
 	private String password;
 	private String type;

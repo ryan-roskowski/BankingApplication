@@ -3,8 +3,9 @@ package com.bank.clientsim;
 import com.bank.beans.*;
 import com.bank.controller.*;
 import com.bank.dao.impl.*;
-import com.bank.data.Database;
 import com.bank.services.impl.*;
+
+import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -13,15 +14,17 @@ public class BankingApplication {
 	UserServiceImpl userService;
 	LoginController loginController;
 	EmployeeServiceImpl employeeService;
+	Properties properties;
 	
-	public BankingApplication() {
-		userDao = new UserDaoImpl(new Database());
+	public BankingApplication() throws Exception {
+		properties = new Properties("C:\\Users\\Ryan\\eclipse-workspace\\BankingApplication\\properties.txt");
+		userDao = new UserDaoImpl(properties);
 		userService = new UserServiceImpl();
 		loginController = new LoginController(userDao);
 		employeeService = new EmployeeServiceImpl(userDao);
 	}
 	
-	public void runApplication() {
+	public void runApplication() throws IOException {
 		Scanner sc = new Scanner(System.in);
 		String input;
 		String response;
@@ -87,7 +90,7 @@ public class BankingApplication {
 								phonenumber = sc.nextLine();
 								System.out.print("Customer Email: ");
 								email = sc.nextLine();
-								employeeService.createUser(customerId, customerPassword, firstname, lastname, phonenumber, email);
+								employeeService.createCustomer(customerId, customerPassword, firstname, lastname, phonenumber, email);
 								System.out.println("Successfully created customer");
 							} catch (InputMismatchException ex){
 								sc.nextLine();
@@ -121,8 +124,14 @@ public class BankingApplication {
 	
 
 	public static void main(String[] args) {
-		BankingApplication app = new BankingApplication();
-		app.runApplication();
+		BankingApplication app;
+		try {
+			app = new BankingApplication();
+			app.runApplication();
+		} catch (Exception e) {
+			System.out.println("Terminating...");
+		}
+		
 	}
 
 }

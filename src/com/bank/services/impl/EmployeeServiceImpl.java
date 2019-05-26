@@ -1,5 +1,7 @@
 package com.bank.services.impl;
 
+import java.io.IOException;
+
 import com.bank.dao.impl.UserDaoImpl;
 
 public class EmployeeServiceImpl implements com.bank.services.EmployeeService {
@@ -9,8 +11,12 @@ public class EmployeeServiceImpl implements com.bank.services.EmployeeService {
 		this.userDao = userDao;
 	}
 	@Override
-	public void createUser(int id, String password, String firstname, String lastname, String phonenumber,String email) {
-		userDao.addCustomer(id, password, firstname, lastname, phonenumber, email);
+	public void createCustomer(int id, String password, String firstname, String lastname, String phonenumber,String email) throws IOException {
+		try {
+			userDao.addCustomer(id, password, firstname, lastname, phonenumber, email);
+		} catch (IOException e) {
+			throw e;
+		}
 	}
 	
 }

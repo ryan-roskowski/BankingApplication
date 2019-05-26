@@ -1,0 +1,4 @@
+123:password1:Employee:Ryan:Roskowski:Manager
+111:dddd:Customer:ru:dddede:3333333333:dddddd
+222:swsw:Customer:deded:deded:333333333:dede
+333:dedede:Customer:dede:dede:444444444:dedede
