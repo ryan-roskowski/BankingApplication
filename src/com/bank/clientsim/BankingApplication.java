@@ -6,6 +6,7 @@ import com.bank.dao.impl.*;
 import com.bank.services.impl.*;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -17,7 +18,7 @@ public class BankingApplication {
 	Properties properties;
 	
 	public BankingApplication() throws Exception {
-		properties = new Properties("C:\\Users\\Ryan\\eclipse-workspace\\BankingApplication\\properties.txt");
+		properties = new Properties("D:\\eclipse_workspace\\BankingApplication\\properties.txt");
 		userDao = new UserDaoImpl(properties);
 		userService = new UserServiceImpl();
 		loginController = new LoginController(userDao);
@@ -31,7 +32,7 @@ public class BankingApplication {
 		String menu;
 		int id;
 		String password;
-		User user; 
+		User user = null; 
 		
 		mainMenu:
 		while(true) {
@@ -53,7 +54,11 @@ public class BankingApplication {
 				sc.nextLine();
 				System.out.print("password: ");
 				password = sc.nextLine();
-				user = loginController.login(id, password);
+				try {
+					user = loginController.login(id, password);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 				if(user != null) {
 					System.out.println("Successfully logged in");
 					while(true) {
@@ -95,6 +100,9 @@ public class BankingApplication {
 							} catch (InputMismatchException ex){
 								sc.nextLine();
 								System.out.println("Invalid Customer ID Number. Aborting...");
+							} catch (SQLException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
 							}
 						}
 						else if(response.equals("logout")) {

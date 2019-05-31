@@ -1,5 +1,7 @@
 package com.bank.controller;
 
+import java.sql.SQLException;
+
 import com.bank.beans.Employee;
 import com.bank.beans.User;
 import com.bank.dao.impl.UserDaoImpl;
@@ -10,7 +12,7 @@ public class LoginController {
 	public LoginController(UserDaoImpl userDao) {
 		this.userDao = userDao;
 	}
-	public User login(int id, String password) {
+	public User login(int id, String password) throws SQLException {
 		User user = userDao.getUser(id);
 		if(user != null && user.getPassword().equals(password)) {
 			return user;
