@@ -1,2 +1,2 @@
-data-source=file
+data-source=database
 data-file=C:\Users\Ryan\eclipse-workspace\BankingApplication\data-file.txt
