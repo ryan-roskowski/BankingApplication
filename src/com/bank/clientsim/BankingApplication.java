@@ -25,7 +25,7 @@ public class BankingApplication {
 		employeeService = new EmployeeServiceImpl(userDao);
 	}
 	
-	public void runApplication() throws IOException {
+	public void runApplication() throws Exception {
 		Scanner sc = new Scanner(System.in);
 		String input;
 		String response;
@@ -101,8 +101,7 @@ public class BankingApplication {
 								sc.nextLine();
 								System.out.println("Invalid Customer ID Number. Aborting...");
 							} catch (SQLException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								System.out.println(e.getMessage());
 							}
 						}
 						else if(response.equals("logout")) {
@@ -137,6 +136,7 @@ public class BankingApplication {
 			app = new BankingApplication();
 			app.runApplication();
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
 			System.out.println("Terminating...");
 		}
 		

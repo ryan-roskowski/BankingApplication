@@ -31,7 +31,7 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 			try {
 				Class.forName("oracle.jdbc.driver.OracleDriver");
 			} catch (ClassNotFoundException e) {
-				throw e;
+				throw new ClassNotFoundException("oracle.jdbc.driver.OracleDriver class not found.");
 			}
 		}
 		else if(properties.getProperties().get("data-source").equals("file")) {
@@ -52,10 +52,9 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 				}
 				reader.close();
 			} catch (FileNotFoundException e) {
-				System.out.println("Error, data file not found.");
-				throw e;
+				throw new FileNotFoundException("Error, data file not found.");
 			} catch(IOException e) {
-				System.out.println("Error reading data file.");
+				throw new IOException("Error reading data file.");
 			}
 			
 		}
@@ -79,25 +78,31 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 		if(!isUseDatabase())
 			return (User) data.getUserList().get(id);
 		else {
-			Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
-			Statement st = conn.createStatement();
-			ResultSet rs = st.executeQuery("Select * from BANKING_APPLICATION_USERS where ID = "+id);
-			if(rs.next() == false) {
-				return null;
-			}
-			else {
-				switch(rs.getString("TYPE")) {
-				case "Customer":
-					return new Customer(id, rs.getString("PASSWORD"), rs.getString("TYPE"), rs.getString("FIRST_NAME"), rs.getString("LAST_NAME"), rs.getString("PHONE"), rs.getString("EMAIL"));
-				case "Employee":
-					return new Employee(id, rs.getString("PASSWORD"), rs.getString("TYPE"), rs.getString("FIRST_NAME"), rs.getString("LAST_NAME"), rs.getString("EMPLOYEE_TYPE"));
-				default:
+			try {
+				Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
+				Statement st = conn.createStatement();
+				ResultSet rs = st.executeQuery("Select * from BANKING_APPLICATION_USERS where ID = "+id);
+				if(rs.next() == false) {
 					return null;
+				}
+				else {
+					switch(rs.getString("TYPE")) {
+					case "Customer":
+						return new Customer(id, rs.getString("PASSWORD"), rs.getString("TYPE"), rs.getString("FIRST_NAME"), rs.getString("LAST_NAME"), rs.getString("PHONE"), rs.getString("EMAIL"));
+					case "Employee":
+						return new Employee(id, rs.getString("PASSWORD"), rs.getString("TYPE"), rs.getString("FIRST_NAME"), rs.getString("LAST_NAME"), rs.getString("EMPLOYEE_TYPE"));
+					default:
+						return null;
+						
+					}
 					
 				}
 				
+			} catch(SQLException e) {
+				e.printStackTrace();
+				throw new SQLException("Database error trying to get user.");
+				
 			}
-			
 		}
 	}
 
@@ -112,24 +117,28 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 					writer.newLine();
 					writer.close();
 				} catch(IOException e) {
-					System.out.println("Error writing new customer to data file.");
-					throw e;
+					throw new IOException("Error writing new customer to data file.");
 				}
 				
 			}
 		}
 		else {
-			Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
-			Statement st = conn.createStatement();
-			PreparedStatement ps = conn.prepareStatement("Insert into BANKING_APPLICATION_USERS (ID, PASSWORD, TYPE, FIRST_NAME, LAST_NAME, PHONE, EMAIL) VALUES (?, ?, ?, ?, ?, ?, ?)");
-			ps.setString(1, Integer.toString(id));
-			ps.setString(2, password);
-			ps.setString(3, "Customer");
-			ps.setString(4, firstname);
-			ps.setString(5, lastname);
-			ps.setString(6, phonenumber);
-			ps.setString(7, email);
-			ps.executeUpdate();
+			try {
+				Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
+				Statement st = conn.createStatement();
+				PreparedStatement ps = conn.prepareStatement("Insert into BANKING_APPLICATION_USERS (ID, PASSWORD, TYPE, FIRST_NAME, LAST_NAME, PHONE, EMAIL) VALUES (?, ?, ?, ?, ?, ?, ?)");
+				ps.setString(1, Integer.toString(id));
+				ps.setString(2, password);
+				ps.setString(3, "Customer");
+				ps.setString(4, firstname);
+				ps.setString(5, lastname);
+				ps.setString(6, phonenumber);
+				ps.setString(7, email);
+				ps.executeUpdate();
+			}catch(SQLException e) {
+				e.printStackTrace();
+				throw new SQLException("Database error trying to add customer.");
+			}
 		}
 	}
 	
@@ -143,22 +152,26 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 				writer.newLine();
 				writer.close();
 				} catch(IOException e) {
-					System.out.println("Error writing new customer to data file");
-					throw e;
+					throw new IOException("Error writing new employee to data file.");
 				}
 			}
 		}
 		else {
-			Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
-			Statement st = conn.createStatement();
-			PreparedStatement ps = conn.prepareStatement("Insert into BANKING_APPLICATION_USERS (ID, PASSWORD, TYPE, FIRSTNAME, LASTNAME, EMPLOYEE_TYPE) VALUES (? ? ? ? ? ?");
-			ps.setInt(0, id);
-			ps.setString(1, password);
-			ps.setString(2, "Employee");
-			ps.setString(3, firstname);
-			ps.setString(4, lastname);
-			ps.setString(5, type);
-			ps.executeUpdate();
+			try {
+				Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
+				Statement st = conn.createStatement();
+				PreparedStatement ps = conn.prepareStatement("Insert into BANKING_APPLICATION_USERS (ID, PASSWORD, TYPE, FIRSTNAME, LASTNAME, EMPLOYEE_TYPE) VALUES (? ? ? ? ? ?");
+				ps.setInt(0, id);
+				ps.setString(1, password);
+				ps.setString(2, "Employee");
+				ps.setString(3, firstname);
+				ps.setString(4, lastname);
+				ps.setString(5, type);
+				ps.executeUpdate();
+			} catch(SQLException e) {
+				e.printStackTrace();
+				throw new SQLException("Database Error adding customer to database.");
+			}
 		}
 	}
 

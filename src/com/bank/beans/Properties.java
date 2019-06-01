@@ -21,10 +21,9 @@ public class Properties {
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
-			System.out.println("Properties file not found");
-			throw e;
+			throw new FileNotFoundException("Properties file not found.");
 		} catch(IOException e) {
-			System.out.println("Error reading properties file.");
+			throw new IOException("Error reading properties file.");
 		}
 	}
 	public HashMap<String, String> getProperties() {

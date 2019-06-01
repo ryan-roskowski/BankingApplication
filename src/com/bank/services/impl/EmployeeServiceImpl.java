@@ -13,11 +13,7 @@ public class EmployeeServiceImpl implements com.bank.services.EmployeeService {
 	}
 	@Override
 	public void createCustomer(int id, String password, String firstname, String lastname, String phonenumber,String email) throws IOException, SQLException {
-		try {
-			userDao.addCustomer(id, password, firstname, lastname, phonenumber, email);
-		} catch (IOException e) {
-			throw e;
-		}
+		userDao.addCustomer(id, password, firstname, lastname, phonenumber, email);
 	}
 	
 }
