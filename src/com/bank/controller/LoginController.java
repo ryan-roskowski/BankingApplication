@@ -8,9 +8,11 @@ import com.bank.dao.impl.UserDaoImpl;
 
 public class LoginController {
 	UserDaoImpl userDao;
+	UserServiceImpl userService;
 	
 	public LoginController(UserDaoImpl userDao) {
 		this.userDao = userDao;
+		this.userService = new UserServiceImpl;
 	}
 	public User login(int id, String password) throws SQLException {
 		User user = userDao.getUser(id);
