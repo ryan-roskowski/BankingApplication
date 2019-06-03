@@ -3,13 +3,28 @@ package com.bank.data;
 import java.util.HashMap;
 
 import com.bank.beans.User;
+import com.bank.beans.Account;
 import com.bank.beans.Employee;
 
 public class Database {
 	HashMap<Integer, User> userList;
+	HashMap<Integer, Account> accountList;
 	
+	public HashMap<Integer, Account> getAccountList() {
+		return accountList;
+	}
+
+	public void setAccountList(HashMap<Integer, Account> accountList) {
+		this.accountList = accountList;
+	}
+
+	public void setUserList(HashMap<Integer, User> userList) {
+		this.userList = userList;
+	}
+
 	public Database() {
 		userList = new HashMap<Integer, User>();
+		accountList = new HashMap<Integer, Account>();
 		
 	}
 	

@@ -24,8 +24,9 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 	private Properties properties;
 	private boolean useDatabase;
 	
-	public UserDaoImpl(Properties properties) throws IOException, ClassNotFoundException  {
+	public UserDaoImpl(Properties properties, Database data) throws IOException, ClassNotFoundException  {
 		this.properties = properties;
+		this.data = data;
 		if(properties.getProperties().get("data-source").equals("database")) {
 			this.useDatabase = true;
 			try {
@@ -35,10 +36,9 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 			}
 		}
 		else if(properties.getProperties().get("data-source").equals("file")) {
-			this.data = new Database();
 			BufferedReader reader;
 			try {
-				reader = new BufferedReader(new FileReader(properties.getProperties().get("data-file")));
+				reader = new BufferedReader(new FileReader(properties.getProperties().get("userData")));
 				String line;
 				String[] userData;
 				while((line = reader.readLine()) != null) {
@@ -52,14 +52,13 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 				}
 				reader.close();
 			} catch (FileNotFoundException e) {
-				throw new FileNotFoundException("Error, data file not found.");
+				throw new FileNotFoundException("Error, user data file not found.");
 			} catch(IOException e) {
-				throw new IOException("Error reading data file.");
+				throw new IOException("Error reading user data file.");
 			}
 			
 		}
 		else {
-			this.data = new Database();
 			data.generateStaticUsers();
 		}
 		
@@ -109,10 +108,10 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 	@Override
 	public void addCustomer(int id, String password, String firstname, String lastname, String phonenumber, String email) throws IOException, SQLException {
 		if(!isUseDatabase()) {
-		data.getUserList().put(id, new Customer(id, password, "Customer",firstname, lastname, phonenumber, email));
+			data.getUserList().put(id, new Customer(id, password, "Customer",firstname, lastname, phonenumber, email));
 			if(properties.getProperties().get("data-source").equals("file")) {
 				try {
-					BufferedWriter writer = new BufferedWriter(new FileWriter(properties.getProperties().get("data-file"), true));
+					BufferedWriter writer = new BufferedWriter(new FileWriter(properties.getProperties().get("userData"), true));
 					writer.write(id+":"+password+":"+"Customer"+":"+firstname+":"+lastname+":"+phonenumber+":"+email);
 					writer.newLine();
 					writer.close();
@@ -147,12 +146,12 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 			data.getUserList().put(id, new Employee(id, password, "Employee", firstname, lastname, type));
 			if(properties.getProperties().get("data-source").equals("file")) {
 				try {
-				BufferedWriter writer = new BufferedWriter(new FileWriter(properties.getProperties().get("data-source"), true));
+				BufferedWriter writer = new BufferedWriter(new FileWriter(properties.getProperties().get("userData"), true));
 				writer.write(id+":"+password+":"+"Employee"+":"+firstname+":"+lastname);
 				writer.newLine();
 				writer.close();
 				} catch(IOException e) {
-					throw new IOException("Error writing new employee to data file.");
+					throw new IOException("Error writing new employee to user data file.");
 				}
 			}
 		}

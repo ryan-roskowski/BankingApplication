@@ -1,0 +1,2 @@
+1:password:Employee:Ryan:Roskowski:Manager
+2:pass:Customer:Jim:Andrews:5701111111:email
