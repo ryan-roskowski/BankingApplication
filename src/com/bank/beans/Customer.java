@@ -3,9 +3,39 @@ package com.bank.beans;
 import java.util.ArrayList;
 
 public class Customer extends User {
-	private String phoneNumber;
-	private String email;
+	private int customerId;
+	private int userId;
+	
 	private ArrayList<Account> accounts;
+	public Customer(int id, String username, String password, String type) {
+		super(id, username, password, type);
+	}
+
+	public Customer(String username, String password, String type) {
+		super(username, password, type);
+	}
+	
+	public Customer(String username, String password, String type, String firstName, String lastName, String address,
+			String phone) {
+		super(username, password, type, firstName, lastName, address, phone);
+	}
+	
+	public Customer(int userId,String username, String password, String type, int customerId,
+			String firstName, String lastName, String address, String phone) {
+		super(userId, username, password, type, firstName, lastName, address, phone);
+	}
+
+	public Customer(int customerId, int userId, String firstName, String lastName,
+			String address, String phone) {
+		super(firstName, lastName, address, phone);
+		this.customerId = customerId;
+		this.userId = userId;
+	}
+	
+	public Customer(String firstName, String lastName, String address, String phone) {
+		super(firstName, lastName, address, phone);
+
+	}
 
 	public ArrayList<Account> getAccounts() {
 		return accounts;
@@ -15,34 +45,20 @@ public class Customer extends User {
 		this.accounts = accounts;
 	}
 
-	public Customer(int id, String password, String type, String firstName, String lastName, String phoneNumber, String email) {
-		super(id, password, type, firstName, lastName);
-		this.phoneNumber = phoneNumber;
-		this.email = email;
-		
+
+	public int getCustomerId() {
+		return customerId;
 	}
 
-	public String getPhoneNumber() {
-		return phoneNumber;
+	public void setCustomerId(int customerId) {
+		this.customerId = customerId;
 	}
 
-
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber = phoneNumber;
+	public int getUserId() {
+		return userId;
 	}
 
-
-	public String getEmail() {
-		return email;
+	public void setUserId(int userId) {
+		this.userId = userId;
 	}
-
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-	
-	
-	
-	
-	
 }

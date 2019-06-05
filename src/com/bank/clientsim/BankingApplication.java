@@ -13,25 +13,34 @@ import java.util.Scanner;
 
 public class BankingApplication {
 	Database data;
+	Properties properties;
 	UserDaoImpl userDao;
-	UserServiceImpl userService;
+	CustomerDaoImpl customerDao;
+	EmployeeDaoImpl employeeDao;
 	AccountDaoImpl accountDao;
+	UserServiceImpl userService;
+	EmployeeServiceImpl employeeService;
+	AccountServiceImpl accountService;
 	LoginController loginController;
 	AccountController accountController;
-	EmployeeServiceImpl employeeService;
-	Properties properties;
-	AccountServiceImpl accountService;
+	
 	
 	public BankingApplication() throws Exception {
 		data = new Database();
-		properties = new Properties("C:\\Users\\Ryan\\git\\Bank\\BankingApplication\\properties.txt");
+		properties = new Properties("D:\\eclipse_workspace\\BankingApplication\\properties.txt");
 		userDao = new UserDaoImpl(properties, data);
+		customerDao = new CustomerDaoImpl(properties, data);
+		employeeDao = new EmployeeDaoImpl(properties, data);
 		accountDao = new AccountDaoImpl(properties, data);
 		userService = new UserServiceImpl();
-		loginController = new LoginController(userDao);
-		accountController = new AccountController(accountDao);
-		employeeService = new EmployeeServiceImpl(userDao);
+		employeeService = new EmployeeServiceImpl(userDao, customerDao);
 		accountService = new AccountServiceImpl(accountDao);
+		loginController = new LoginController(userDao, employeeDao, customerDao);
+		accountController = new AccountController(accountDao);
+		data.generateDefaultData();
+		if(properties.getProperties().get("data-source") == null || !properties.getProperties().get("data-source").equals("file") || !properties.getProperties().get("data-source").equals("database")) {
+			
+		}
 	}
 	
 	public void runApplication() throws Exception {
@@ -40,6 +49,7 @@ public class BankingApplication {
 		String response;
 		String menu;
 		int id;
+		String username;
 		String password;
 		User user = null; 
 		Customer customer;
@@ -52,25 +62,19 @@ public class BankingApplication {
 			input = sc.nextLine();
 			switch(input) {
 			case "1":
-				System.out.println("You chose login. Please enter userId and password below.");
-				System.out.print("userId: ");
-				try {
-					id = sc.nextInt();
-				} catch(InputMismatchException ex) {
-					sc.nextLine();
-					System.out.println("Invalid userId. Aborting login...");
-					break;
-				}
-				sc.nextLine();
+				System.out.println("You chose login. Please enter username and password below.");
+				System.out.print("username: ");
+				username = sc.nextLine();
 				System.out.print("password: ");
 				password = sc.nextLine();
 				try {
-					user = loginController.login(id, password);
+					user = loginController.login(username, password);
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
 				if(user != null) {
-					System.out.println("Successfully logged in");
+					System.out.println("Successfully logged in.");
+					System.out.println("Welcome "+user.getFirstName()+ " "+user.getLastName()+"!");
 					userSession:
 					while(true) {
 						menu = loginController.getMenu(user);
@@ -86,17 +90,16 @@ public class BankingApplication {
 						response = loginController.performAction(user, input);
 						switch(response) {
 						case "Create Customer":
-							int customerId;
+							String customerUsername;
 							String customerPassword;
 							String firstname;
 							String lastname;
 							String phonenumber;
-							String email;
+							String address;
 							System.out.println("Please enter Customer information below");
 							try {
-								System.out.print("Customer ID Number: ");
-								customerId = sc.nextInt();
-								sc.nextLine();
+								System.out.print("Customer Username: ");
+								customerUsername = sc.nextLine();
 								System.out.print("Customer Password: ");
 								customerPassword = sc.nextLine();
 								System.out.print("Customer First Name: ");
@@ -105,13 +108,10 @@ public class BankingApplication {
 								lastname = sc.nextLine();
 								System.out.print("Customer Phone Number: ");
 								phonenumber = sc.nextLine();
-								System.out.print("Customer Email: ");
-								email = sc.nextLine();
-								employeeService.createCustomer(customerId, customerPassword, firstname, lastname, phonenumber, email);
+								System.out.print("Customer Address: ");
+								address = sc.nextLine();
+								employeeService.createCustomerUser(customerUsername, customerPassword, firstname, lastname, address, phonenumber);
 								System.out.println("Successfully created customer");
-							} catch (InputMismatchException ex){
-								sc.nextLine();
-								System.out.println("Invalid Customer ID Number. Aborting...");
 							} catch (SQLException e) {
 								System.out.println(e.getMessage());
 							}
@@ -122,23 +122,21 @@ public class BankingApplication {
 						case "Create Account for Customer":
 							try {
 								int accountId;
-								int userId;
+								String customerUserName;
 								String type;
 								System.out.println("Enter Account information below.");
-								System.out.print("User ID Number: ");
-								userId = sc.nextInt();
-								sc.nextLine();
-								User accUser = userDao.getUser(userId);
-								if(accUser == null || !accUser.getType().equals("Customer")) {
+								System.out.print("Customer Username: ");
+								customerUserName = sc.nextLine();
+								User accUser = userDao.getUser(customerUserName);
+								Customer accCustomer = customerDao.getCustomer(accUser.getUserId());
+								if(accCustomer == null || !accCustomer.getType().equals("Customer")) {
 									System.out.println("Invalid user.");
 								}
 								else {	
-									System.out.print("Account ID Number: ");
-									accountId = sc.nextInt();
-									sc.nextLine();
 									System.out.print("Account Type: ");
 									type = sc.nextLine();
-									accountDao.addAccount(accountId, accUser, type);
+									accountDao.addAccount(accCustomer, type);
+									System.out.println("Successfully added account for user "+accUser.getUsername());
 								}
 							} catch (InputMismatchException ex){
 								sc.nextLine();

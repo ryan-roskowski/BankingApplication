@@ -10,9 +10,7 @@ public class CheckingAccount extends Account {
 	public double getInterest() {
 		return interest;
 	}
-	public CheckingAccount(int accountId, int userId, long balance, String type, String firstname, String lastname) {
-		super(accountId, userId, balance, type, firstname, lastname);
-		// TODO Auto-generated constructor stub
-	}
+	
+	
 	
 }

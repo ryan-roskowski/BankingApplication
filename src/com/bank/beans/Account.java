@@ -1,28 +1,41 @@
 package com.bank.beans;
 
 public class Account {
-	private int accountId;
-	private int userId;
+	private int Id;
+	private int accountNumber;
+	private int customerId;
 	private long balance;
 	private String type;
-	private String firstname;
-	private String lastname;
 	
-	public Account(int accountId, int userId, long balance, String type, String firstname, String lastname) {
-		super();
-		this.accountId = accountId;
-		this.userId = userId;
+	
+	public Account(int id, int accountNumber, int customerId, long balance, String type) {
+		Id = id;
+		this.accountNumber = accountNumber;
+		this.customerId = customerId;
 		this.balance = balance;
 		this.type = type;
-		this.firstname = firstname;
-		this.lastname = lastname;
 	}
-	public int getAccountId() {
-		return accountId;
+	
+	
+	public Account(int accountNumber, int customerId, long balance, String type) {
+		this.accountNumber = accountNumber;
+		this.customerId = customerId;
+		this.balance = balance;
+		this.type = type;
 	}
-	public void setAccountId(int accountId) {
-		this.accountId = accountId;
+
+
+	public Account(int accountNumber, long balance, String type) {
+		this.accountNumber = accountNumber;
+		this.balance = balance;
+		this.type = type;
 	}
+	
+	public Account() {
+		
+	}
+
+
 	public String getType() {
 		return type;
 	}
@@ -35,25 +48,25 @@ public class Account {
 	public void setBalance(long balance) {
 		this.balance = balance;
 	}
-	public int getUserId() {
-		return userId;
+	public int getId() {
+		return Id;
 	}
-	
-	public void setUserId(int userId) {
-		this.userId = userId;
+	public void setId(int id) {
+		Id = id;
 	}
-	public String getFirstname() {
-		return firstname;
+	public int getAccountNumber() {
+		return accountNumber;
 	}
-	public void setFirstname(String firstname) {
-		this.firstname = firstname;
+	public void setAccountNumber(int accountNumber) {
+		this.accountNumber = accountNumber;
 	}
-	public String getLastname() {
-		return lastname;
+	public int getCustomerId() {
+		return customerId;
 	}
-	public void setLastname(String lastname) {
-		this.lastname = lastname;
+	public void setCustomerId(int customerId) {
+		this.customerId = customerId;
 	}
+
 	
 	
 }

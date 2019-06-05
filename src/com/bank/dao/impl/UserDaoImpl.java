@@ -27,7 +27,7 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 	public UserDaoImpl(Properties properties, Database data) throws IOException, ClassNotFoundException  {
 		this.properties = properties;
 		this.data = data;
-		if(properties.getProperties().get("data-source").equals("database")) {
+		if(properties.getProperties().get("data-source") != null && properties.getProperties().get("data-source").equals("database")) {
 			this.useDatabase = true;
 			try {
 				Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -35,7 +35,7 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 				throw new ClassNotFoundException("oracle.jdbc.driver.OracleDriver class not found.");
 			}
 		}
-		else if(properties.getProperties().get("data-source").equals("file")) {
+		else if(properties.getProperties().get("data-source") != null && properties.getProperties().get("data-source").equals("file")) {
 			BufferedReader reader;
 			try {
 				reader = new BufferedReader(new FileReader(properties.getProperties().get("userData")));
@@ -43,12 +43,7 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 				String[] userData;
 				while((line = reader.readLine()) != null) {
 					userData = line.split(":");
-					if(userData[2].equals("Employee")) {
-						data.getUserList().put(Integer.parseInt(userData[0]), new Employee(Integer.parseInt(userData[0]),userData[1],"Employee",userData[3],userData[4],userData[5]));
-					}
-					else if(userData[2].equals("Customer")) {
-						data.getUserList().put(Integer.parseInt(userData[0]), new Customer(Integer.parseInt(userData[0]),userData[1],"Customer",userData[3],userData[4],userData[5],userData[6]));
-					}
+					data.getUserList().put(userData[1], new User(Integer.parseInt(userData[0]), userData[1], userData[2], userData[3]));
 				}
 				reader.close();
 			} catch (FileNotFoundException e) {
@@ -57,9 +52,6 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 				throw new IOException("Error reading user data file.");
 			}
 			
-		}
-		else {
-			data.generateStaticUsers();
 		}
 		
 	}
@@ -73,32 +65,25 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 	}
 
 	@Override
-	public User getUser(int id) throws SQLException {
+	public User getUser(String username) throws SQLException {
 		if(!isUseDatabase())
-			return (User) data.getUserList().get(id);
+			return data.getUserList().get(username);
 		else {
 			try {
 				Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
 				Statement st = conn.createStatement();
-				ResultSet rs = st.executeQuery("Select * from BANKING_APPLICATION_USERS where ID = "+id);
+				ResultSet rs = st.executeQuery("Select * from BANKING_APPLICATION_USERS where USERNAME = '"+username+"'");
 				if(rs.next() == false) {
 					return null;
 				}
 				else {
-					switch(rs.getString("TYPE")) {
-					case "Customer":
-						return new Customer(id, rs.getString("PASSWORD"), rs.getString("TYPE"), rs.getString("FIRST_NAME"), rs.getString("LAST_NAME"), rs.getString("PHONE"), rs.getString("EMAIL"));
-					case "Employee":
-						return new Employee(id, rs.getString("PASSWORD"), rs.getString("TYPE"), rs.getString("FIRST_NAME"), rs.getString("LAST_NAME"), rs.getString("EMPLOYEE_TYPE"));
-					default:
-						return null;
-						
-					}
-					
+					return new User(rs.getInt("ID"), rs.getString("USERNAME"), rs.getString("PASSWORD"), rs.getString("TYPE"));
+
 				}
 				
 			} catch(SQLException e) {
 				e.printStackTrace();
+				System.out.println(e.getMessage());
 				throw new SQLException("Database error trying to get user.");
 				
 			}
@@ -106,17 +91,38 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 	}
 
 	@Override
-	public void addCustomer(int id, String password, String firstname, String lastname, String phonenumber, String email) throws IOException, SQLException {
+	public void addUser(String username, String password, String type) throws Exception {
 		if(!isUseDatabase()) {
-			data.getUserList().put(id, new Customer(id, password, "Customer",firstname, lastname, phonenumber, email));
+			int uniqueID;
+			boolean unique = true;
+			if(data.getUserList().containsKey(username)) 
+				throw new Exception("Error, username already in use.");
+			else
+			{
+				
+				while(true) {
+					uniqueID = (int) (Math.random() * 1000000);
+					for(User u : data.getUserList().values()) {
+						if(u.getUserId() == uniqueID) {
+							unique = false;
+							break;
+						}
+					}
+					if(unique)
+						break;
+				}
+				
+				data.getUserList().put(username, new User(uniqueID, username, password, type));
+			}
+			
 			if(properties.getProperties().get("data-source").equals("file")) {
 				try {
 					BufferedWriter writer = new BufferedWriter(new FileWriter(properties.getProperties().get("userData"), true));
-					writer.write(id+":"+password+":"+"Customer"+":"+firstname+":"+lastname+":"+phonenumber+":"+email);
+					writer.write(uniqueID+":"+username+":"+password+":"+type);
 					writer.newLine();
 					writer.close();
 				} catch(IOException e) {
-					throw new IOException("Error writing new customer to data file.");
+					throw new IOException("Error writing new User to data file.");
 				}
 				
 			}
@@ -125,14 +131,10 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 			try {
 				Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
 				Statement st = conn.createStatement();
-				PreparedStatement ps = conn.prepareStatement("Insert into BANKING_APPLICATION_USERS (ID, PASSWORD, TYPE, FIRST_NAME, LAST_NAME, PHONE, EMAIL) VALUES (?, ?, ?, ?, ?, ?, ?)");
-				ps.setString(1, Integer.toString(id));
+				PreparedStatement ps = conn.prepareStatement("Insert into BANKING_APPLICATION_USERS (ID, USERNAME, PASSWORD, TYPE) VALUES (BANKING_APPLICATION_USERS_PKSEQ.nextval, ?, ?, ?)");
+				ps.setString(1, username);
 				ps.setString(2, password);
-				ps.setString(3, "Customer");
-				ps.setString(4, firstname);
-				ps.setString(5, lastname);
-				ps.setString(6, phonenumber);
-				ps.setString(7, email);
+				ps.setString(3, type);
 				ps.executeUpdate();
 			}catch(SQLException e) {
 				e.printStackTrace();
@@ -141,37 +143,6 @@ public class UserDaoImpl implements com.bank.dao.UserDao {
 		}
 	}
 	
-	public void addEmployee(int id, String password, String firstname, String lastname, String type) throws IOException, SQLException {
-		if(!isUseDatabase()) {
-			data.getUserList().put(id, new Employee(id, password, "Employee", firstname, lastname, type));
-			if(properties.getProperties().get("data-source").equals("file")) {
-				try {
-				BufferedWriter writer = new BufferedWriter(new FileWriter(properties.getProperties().get("userData"), true));
-				writer.write(id+":"+password+":"+"Employee"+":"+firstname+":"+lastname);
-				writer.newLine();
-				writer.close();
-				} catch(IOException e) {
-					throw new IOException("Error writing new employee to user data file.");
-				}
-			}
-		}
-		else {
-			try {
-				Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
-				Statement st = conn.createStatement();
-				PreparedStatement ps = conn.prepareStatement("Insert into BANKING_APPLICATION_USERS (ID, PASSWORD, TYPE, FIRSTNAME, LASTNAME, EMPLOYEE_TYPE) VALUES (? ? ? ? ? ?");
-				ps.setInt(0, id);
-				ps.setString(1, password);
-				ps.setString(2, "Employee");
-				ps.setString(3, firstname);
-				ps.setString(4, lastname);
-				ps.setString(5, type);
-				ps.executeUpdate();
-			} catch(SQLException e) {
-				e.printStackTrace();
-				throw new SQLException("Database Error adding customer to database.");
-			}
-		}
-	}
+	
 
 }

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 
 import com.bank.beans.Account;
 import com.bank.beans.CheckingAccount;
+import com.bank.beans.Customer;
 import com.bank.beans.Properties;
 import com.bank.beans.SavingsAccount;
 import com.bank.beans.User;
@@ -44,12 +45,7 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 				String[] accountData;
 				while((line = reader.readLine()) != null) {
 					accountData = line.split(":");
-					if(accountData[3].equals("Checking")) {
-						data.getAccountList().put(Integer.parseInt(accountData[0]), new CheckingAccount(Integer.parseInt(accountData[0]), Integer.parseInt(accountData[1]), Long.parseLong(accountData[2]), "Checking", accountData[4], accountData[5]));
-					}
-					else if(accountData[3].equals("Savings")) {
-						data.getAccountList().put(Integer.parseInt(accountData[0]), new SavingsAccount(Integer.parseInt(accountData[0]), Integer.parseInt(accountData[1]), Long.parseLong(accountData[2]), "Savings", accountData[4], accountData[5]));
-					}
+					data.getAccountList().put(Integer.parseInt(accountData[0]), new Account(Integer.parseInt(accountData[0]), Integer.parseInt(accountData[1]), Integer.parseInt(accountData[2]), Long.parseLong(accountData[3]), accountData[4]));
 				}			
 				reader.close();
 			} catch (FileNotFoundException e) {
@@ -61,11 +57,11 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 		}
 	}
 	@Override
-	public ArrayList<Account> getAccounts(User user) throws SQLException {
+	public ArrayList<Account> getAccounts(Customer customer) throws SQLException {
 		ArrayList<Account> accounts = new ArrayList<Account>();
 		if(!isUseDatabase()) {
 			for(Account a : data.getAccountList().values()) {
-				if(user.getId() == a.getUserId()) {
+				if(customer.getCustomerId() == a.getCustomerId()) {
 					accounts.add(a);
 				}
 			}
@@ -74,12 +70,13 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 		try {
 			Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
 			Statement st = conn.createStatement();
-			ResultSet rs = st.executeQuery("Select * from ACCOUNTS where USERID = "+user.getId());
+			ResultSet rs = st.executeQuery("Select * from BANKING_APPLICATION_ACCOUNTS where CUSTOMER_ID = "+customer.getCustomerId());
 			while(rs.next()) {
-				accounts.add(new Account(Integer.parseInt(rs.getString("ID")), Integer.parseInt(rs.getString("USERID")), Long.parseLong(rs.getString("BALANCE")), rs.getString("TYPE"), rs.getString("FIRST_NAME"), rs.getString("LAST_NAME")));
+				accounts.add(new Account(Integer.parseInt(rs.getString("ID")), Integer.parseInt(rs.getString("ACCOUNT_NUMBER")), Integer.parseInt(rs.getString("CUSTOMER_ID")), Long.parseLong(rs.getString("BALANCE")), rs.getString("TYPE")));
 			}
 			return accounts;
 		} catch(SQLException e) {
+			e.printStackTrace();
 			throw new SQLException("Error getting accounts from database");
 		}
 	}
@@ -90,32 +87,43 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 		this.useDatabase = useDatabase;
 	}
 	@Override
-	public void addAccount(int accountId, User user, String type) throws SQLException, IOException {
+	public void addAccount(Customer customer, String type) throws SQLException, IOException {
 		if(!isUseDatabase()) {
-			data.getAccountList().put(accountId, new Account(accountId, user.getId(), 0, type, user.getFirstName(), user.getLastName()));
+
+				int uniqueID;
+				int uniqueAccNumber;
+				boolean unique = true;
+				while(true) {
+					uniqueID = (int) (Math.random() * 1000000);
+					uniqueAccNumber = (int) (Math.random() * 100000000);
+					for(Account a  : data.getAccountList().values()) {
+						if(a.getId() == uniqueID || a.getAccountNumber() == uniqueAccNumber) {
+							unique = false;
+							break;
+						}
+					}
+					if(unique)
+						break;
+				}
+			data.getAccountList().put(uniqueID, new Account(uniqueID, uniqueAccNumber, customer.getCustomerId(), 0, type));
 			if(properties.getProperties().get("data-source").equals("file")) {
 				try {
 					BufferedWriter writer = new BufferedWriter(new FileWriter(properties.getProperties().get("accountData"), true));
-					writer.write(accountId+":"+user.getId()+":"+0+":"+type+":"+user.getFirstName()+":"+user.getLastName());
+					writer.write(uniqueID+":"+uniqueAccNumber+":"+customer.getCustomerId()+":"+0+":"+type);
 					writer.newLine();
 					writer.close();
 				} catch(IOException e) {
 					throw new IOException("Error writing new account to data file.");
 				}
-				
 			}
 		}
 		else {
 			try {
 				Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
 				Statement st = conn.createStatement();
-				PreparedStatement ps = conn.prepareStatement("Insert into ACCOUNTS (ID, USERID, TYPE, FIRST_NAME, LAST_NAME, BALANCE) VALUES (?, ?, ?, ?, ?, ?)");
-				ps.setString(1, Integer.toString(accountId));
-				ps.setString(2, Integer.toString(user.getId()));
-				ps.setString(3, type);
-				ps.setString(4, user.getFirstName());
-				ps.setString(5, user.getLastName());
-				ps.setString(6, "0");
+				PreparedStatement ps = conn.prepareStatement("Insert into BANKING_APPLICATION_ACCOUNTS (ID, ACCOUNT_NUMBER, TYPE, CUSTOMER_ID, BALANCE) VALUES (BANKING_APPLICATION_ACCOUNTS_PKSEQ.nextval, BANKING_APPLICATION_ACCOUNTS_ACCOUNT_NUMBER.nextval , ?, ?, 0)");
+				ps.setString(1, type);
+				ps.setInt(2, customer.getCustomerId());
 				ps.executeUpdate();
 			}catch(SQLException e) {
 				e.printStackTrace();
@@ -139,8 +147,8 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 				String[] segments;
 				for(String l : lines) {
 					segments = l.split(":");
-					if(segments[0].equals(Integer.toString(account.getAccountId()))) {
-						writer.write(account.getAccountId()+":"+account.getUserId()+":"+(account.getBalance()+amount)+":"+account.getType()+":"+account.getFirstname()+":"+account.getLastname());
+					if(segments[0].equals(Integer.toString(account.getId()))) {
+						writer.write(account.getId()+":"+account.getAccountNumber()+":"+account.getCustomerId()+":"+(account.getBalance()+amount)+":"+account.getType());
 						writer.newLine();
 					}
 					else {
@@ -158,12 +166,12 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 				throw new IOException("Error reading/writing account data file on deposit.");
 			}
 		}
-		else {
+		else if(properties.getProperties().get("data-source").equals("database")) {
 			Connection conn;
 			try {
 				conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
 				Statement st = conn.createStatement();
-				st.executeUpdate("UPDATE ACCOUNTS SET BALANCE = "+(account.getBalance()+amount)+" WHERE ID = "+account.getAccountId());
+				st.executeUpdate("UPDATE BANKING_APPLICATION_ACCOUNTS SET BALANCE = "+(account.getBalance()+amount)+" WHERE ID = "+account.getId());
 				return true;
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
@@ -172,6 +180,7 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 			}
 			
 		}
+		return true;
 	}
 	@Override
 	public boolean withdraw(Account account, int amount) throws SQLException, IOException {
@@ -189,8 +198,8 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 				String[] segments;
 				for(String l : lines) {
 					segments = l.split(":");
-					if(segments[0].equals(Integer.toString(account.getAccountId()))) {
-						writer.write(account.getAccountId()+":"+account.getUserId()+":"+(account.getBalance()-amount)+":"+account.getType()+":"+account.getFirstname()+":"+account.getLastname());
+					if(segments[0].equals(Integer.toString(account.getId()))) {
+						writer.write(account.getId()+":"+account.getAccountNumber()+":"+account.getCustomerId()+":"+(account.getBalance()-amount)+":"+account.getType());
 						writer.newLine();
 					}
 					else {
@@ -208,20 +217,19 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 				throw new IOException("Error reading/writing account data file on withdraw.");
 			}
 		}
-		else {
+		else if (properties.getProperties().get("data-source").equals("database")){
 			Connection conn;
 			try {
 				conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
 				Statement st = conn.createStatement();
-				st.executeUpdate("UPDATE ACCOUNTS SET BALANCE = "+(account.getBalance()-amount)+" WHERE ID = "+account.getAccountId());
+				st.executeUpdate("UPDATE BANKING_APPLICATION_ACCOUNTS SET BALANCE = "+(account.getBalance()-amount)+" WHERE ID = "+account.getId());
 				return true;
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				throw new SQLException("Database error on withdraw");
-			}
-			
+			}		
 		}
+		return true;
 	}
-	
 }
