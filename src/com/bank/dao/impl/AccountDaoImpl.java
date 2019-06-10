@@ -21,6 +21,7 @@ import com.bank.beans.Properties;
 import com.bank.beans.SavingsAccount;
 import com.bank.beans.User;
 import com.bank.data.Database;
+import com.bank.enums.*;
 
 public class AccountDaoImpl implements com.bank.dao.AccountDao {
 	private Properties properties;
@@ -133,7 +134,7 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 		
 	}
 	@Override
-	public boolean deposit(Account account, int amount) throws IOException, SQLException {
+	public DepositResult deposit(Account account, int amount) throws IOException, SQLException {
 		if(!isUseDatabase() && properties.getProperties().get("data-source").equals("file")) {
 			try {
 				String line;
@@ -156,7 +157,7 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 					}
 				}
 				writer.close();
-				return true;
+				return DepositResult.SUCCESS;
 				
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -172,7 +173,7 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 				conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
 				Statement st = conn.createStatement();
 				st.executeUpdate("UPDATE BANKING_APPLICATION_ACCOUNTS SET BALANCE = "+(account.getBalance()+amount)+" WHERE ID = "+account.getId());
-				return true;
+				return DepositResult.SUCCESS;
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -180,11 +181,12 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 			}
 			
 		}
-		return true;
+		return DepositResult.SUCCESS;
 	}
 	@Override
-	public boolean withdraw(Account account, int amount) throws SQLException, IOException {
-		// TODO Auto-generated method stub
+	public WithdrawResult withdraw(Account account, int amount) throws SQLException, IOException {
+		if(account.getBalance()-amount < 0)
+			return WithdrawResult.OVERDRAFT;
 		if(!isUseDatabase() && properties.getProperties().get("data-source").equals("file")) {
 			try {
 				String line;
@@ -207,7 +209,7 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 					}
 				}
 				writer.close();
-				return true;
+				return WithdrawResult.SUCCESS;
 				
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -223,13 +225,13 @@ public class AccountDaoImpl implements com.bank.dao.AccountDao {
 				conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","system","password");
 				Statement st = conn.createStatement();
 				st.executeUpdate("UPDATE BANKING_APPLICATION_ACCOUNTS SET BALANCE = "+(account.getBalance()-amount)+" WHERE ID = "+account.getId());
-				return true;
+				return WithdrawResult.SUCCESS;
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				throw new SQLException("Database error on withdraw");
 			}		
 		}
-		return true;
+		return WithdrawResult.SUCCESS;
 	}
 }

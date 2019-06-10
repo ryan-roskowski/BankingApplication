@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 import com.bank.beans.Account;
 import com.bank.dao.impl.AccountDaoImpl;
-
+import com.bank.enums.*;
 public class AccountServiceImpl implements com.bank.services.AccountService {
 	AccountDaoImpl accountDao;
 	
@@ -15,21 +15,25 @@ public class AccountServiceImpl implements com.bank.services.AccountService {
 	}
 
 	@Override
-	public boolean deposit(Account account, int amount) throws IOException, SQLException {
-		if(accountDao.deposit(account, amount)) {
+	public DepositResult deposit(Account account, int amount) throws IOException, SQLException {
+		if(accountDao.deposit(account, amount) == DepositResult.SUCCESS) {
 			account.setBalance(account.getBalance()+amount);
-			return true;
+			return DepositResult.SUCCESS;
 		}
-		return false;
+		return DepositResult.FAILURE;
 	}
 
 	@Override
-	public boolean withdraw(Account account, int amount) throws SQLException, IOException{
-		if(accountDao.withdraw(account, amount)) {
+	public WithdrawResult withdraw(Account account, int amount) throws SQLException, IOException{
+		WithdrawResult res = accountDao.withdraw(account, amount);
+		if(res == WithdrawResult.SUCCESS) {
 			account.setBalance(account.getBalance()-amount);
-			return true;
+			return WithdrawResult.SUCCESS;
 		}
-		return false;
+		else if(res == WithdrawResult.OVERDRAFT) {
+			return WithdrawResult.OVERDRAFT;
+		}
+		return WithdrawResult.FAILURE;
 	}
 
 	

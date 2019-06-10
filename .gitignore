@@ -7,3 +7,4 @@ bin/com/bank/beans/Account.class
 bin/com/bank/beans/Account.class
 bin/com/bank/beans/Properties.class
 bin/com/bank/beans/User.class
+/target/

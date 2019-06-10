@@ -5,6 +5,9 @@ import com.bank.controller.*;
 import com.bank.dao.impl.*;
 import com.bank.data.Database;
 import com.bank.services.impl.*;
+import com.bank.enums.DepositResult;
+import com.bank.enums.UserAction;
+import com.bank.enums.WithdrawResult;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -27,7 +30,7 @@ public class BankingApplication {
 	
 	public BankingApplication() throws Exception {
 		data = new Database();
-		properties = new Properties("D:\\eclipse_workspace\\BankingApplication\\properties.txt");
+		properties = new Properties("properties.txt");
 		userDao = new UserDaoImpl(properties, data);
 		customerDao = new CustomerDaoImpl(properties, data);
 		employeeDao = new EmployeeDaoImpl(properties, data);
@@ -46,7 +49,7 @@ public class BankingApplication {
 	public void runApplication() throws Exception {
 		Scanner sc = new Scanner(System.in);
 		String input;
-		String response;
+		UserAction response;
 		String menu;
 		int id;
 		String username;
@@ -89,7 +92,7 @@ public class BankingApplication {
 						input = sc.nextLine();
 						response = loginController.performAction(user, input);
 						switch(response) {
-						case "Create Customer":
+						case CREATE_CUSTOMER:
 							String customerUsername;
 							String customerPassword;
 							String firstname;
@@ -116,10 +119,10 @@ public class BankingApplication {
 								System.out.println(e.getMessage());
 							}
 							break;
-						case "logout":
+						case LOGOUT:
 							System.out.println("You chose logout. Returning to main menu...");
 							break userSession;
-						case "Create Account for Customer":
+						case CREATE_ACCOUNT_FOR_CUSTOMER:
 							try {
 								int accountId;
 								String customerUserName;
@@ -145,7 +148,7 @@ public class BankingApplication {
 								System.out.println(e.getMessage());
 							}
 							break;
-						case "View Balance":
+						case VIEW_BALANCE:
 							customer = (Customer) user;
 							customer.setAccounts(accountController.getAccounts(customer));
 							if(customer.getAccounts().isEmpty()) {
@@ -170,7 +173,7 @@ public class BankingApplication {
 								}
 							}
 							break;
-						case "Deposit":
+						case DEPOSIT:
 						    customer = (Customer) user;
 							customer.setAccounts(accountController.getAccounts(customer));
 							if(customer.getAccounts().isEmpty()) {
@@ -195,7 +198,8 @@ public class BankingApplication {
 											amount = sc.nextInt();
 											sc.nextLine();
 											prevBalance = customer.getAccounts().get(choice-1).getBalance();
-											if(accountService.deposit(customer.getAccounts().get(choice-1), amount)) {
+											DepositResult res = accountService.deposit(customer.getAccounts().get(choice-1), amount);
+											if(res == DepositResult.SUCCESS) {
 												System.out.println("Deposit Successful.");
 												System.out.println("Previous Balance: "+prevBalance);
 												System.out.println("New Balance: "+customer.getAccounts().get(choice-1).getBalance());
@@ -212,7 +216,7 @@ public class BankingApplication {
 								}
 							}
 							break;
-						case "Withdraw":
+						case WITHDRAW:
 							customer = (Customer) user;
 							customer.setAccounts(accountController.getAccounts(customer));
 							if(customer.getAccounts().isEmpty()) {
@@ -237,13 +241,18 @@ public class BankingApplication {
 											amount = sc.nextInt();
 											sc.nextLine();
 											prevBalance = customer.getAccounts().get(choice-1).getBalance();
-											if(accountService.withdraw(customer.getAccounts().get(choice-1), amount)) {
+											WithdrawResult res = accountService.withdraw(customer.getAccounts().get(choice-1), amount);
+											if(res == WithdrawResult.SUCCESS) {
 												System.out.println("Withdraw Successful.");
 												System.out.println("Previous Balance: "+prevBalance);
 												System.out.println("New Balance: "+customer.getAccounts().get(choice-1).getBalance());
 											}
-											else {
+											else if (res == WithdrawResult.FAILURE){
 												System.out.println("Withdraw failed.");
+											}
+											else if(res == WithdrawResult.OVERDRAFT) {
+												System.out.println("Error, withdraw results in negative balance.");
+												System.out.println("Aborting...");
 											}
 										} catch(InputMismatchException e) {
 											System.out.println("Invalid Withdraw amount");
@@ -255,7 +264,7 @@ public class BankingApplication {
 							}
 							break;
 						default:
-							System.out.println(response);
+							System.out.println(response.getMessage());
 						}
 					}
 				}

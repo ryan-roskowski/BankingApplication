@@ -10,6 +10,7 @@ import com.bank.dao.impl.CustomerDaoImpl;
 import com.bank.dao.impl.EmployeeDaoImpl;
 import com.bank.dao.impl.UserDaoImpl;
 import com.bank.services.impl.UserServiceImpl;
+import com.bank.enums.UserAction;
 
 public class LoginController {
 	UserDaoImpl userDao;
@@ -84,7 +85,7 @@ public class LoginController {
 		}
 	}
 	
-	public String performAction(User user, String input) {
+	public UserAction performAction(User user, String input) {
 		switch (user.getType()) {
 		case "Employee":
 			Employee employee = (Employee) user;
@@ -92,51 +93,51 @@ public class LoginController {
 			case "Manager":
 				switch (input) {
 				case "1":
-					return "Create Customer";
+					return UserAction.CREATE_CUSTOMER;
 				case "2":
-					return "Create Account for Customer";
+					return UserAction.CREATE_ACCOUNT_FOR_CUSTOMER;
 				case "3":
-					return "Performed Manager option 1";
+					return UserAction.MANAGER_1;
 				case "4":
-					return "Performed Manager option 2";
+					return UserAction.MANAGER_2;
 				case "5":
-					return "logout";
+					return UserAction.LOGOUT;
 				default:
-					return "invalid menu item";
+					return UserAction.INVALID;
 				}
 			case "Teller":
 				switch (input) {
 				case "1":
-					return "Create Customer";
+					return UserAction.CREATE_CUSTOMER;
 				case "2":
-					return "Create Account for Customer";
+					return UserAction.CREATE_ACCOUNT_FOR_CUSTOMER;
 				case "3":
-					return "Performed Teller option 1";
+					return UserAction.TELLER_1;
 				case "4":
-					return "Performed Teller option 2";
+					return UserAction.TELLER_2;
 				case "5":
-					return "logout";
+					return UserAction.LOGOUT;
 				default:
-					return "invalid menu item";
+					return UserAction.INVALID;
 				}
 			default:
-				return "Error: invalid employee type.";
+				return UserAction.INVALID;
 			}
 		case "Customer":
 			switch (input) {
 			case "1":
-				return "View Balance";
+				return UserAction.VIEW_BALANCE;
 			case "2":
-				return "Deposit";
+				return UserAction.DEPOSIT;
 			case "3":
-				return "Withdraw";
+				return UserAction.WITHDRAW;
 			case "4":
-				return "logout";
+				return UserAction.LOGOUT;
 			default:
-				return "invalid menu item";
+				return UserAction.INVALID;
 			}
 		default:
-			return "Error: invalid user type";
+			return UserAction.INVALID;
 		}
 	}
 }
