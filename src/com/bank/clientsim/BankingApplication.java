@@ -132,7 +132,7 @@ public class BankingApplication {
 								customerUserName = sc.nextLine();
 								User accUser = userDao.getUser(customerUserName);
 								Customer accCustomer = customerDao.getCustomer(accUser.getUserId());
-								if(accCustomer == null || !accCustomer.getType().equals("Customer")) {
+								if(accUser == null || accCustomer == null || !accCustomer.getType().equals("Customer")) {
 									System.out.println("Invalid user.");
 								}
 								else {	
