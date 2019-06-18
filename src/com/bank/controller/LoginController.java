@@ -79,7 +79,8 @@ public class LoginController {
 			return "1. View balance\n"+
 				   "2. Deposit\n"+
 				   "3. Withdraw\n"+
-				   "4. Logout\n"+
+				   "4. View Statement\n"+
+				   "5. Logout\n"+
 				   "Please select an action from the menu above";
 		default: return "invalid";
 		}
@@ -132,6 +133,8 @@ public class LoginController {
 			case "3":
 				return UserAction.WITHDRAW;
 			case "4":
+				return UserAction.VIEW_TRANSACTIONS;
+			case "5":
 				return UserAction.LOGOUT;
 			default:
 				return UserAction.INVALID;

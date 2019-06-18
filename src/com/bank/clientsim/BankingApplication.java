@@ -11,6 +11,7 @@ import com.bank.enums.WithdrawResult;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -21,6 +22,7 @@ public class BankingApplication {
 	CustomerDaoImpl customerDao;
 	EmployeeDaoImpl employeeDao;
 	AccountDaoImpl accountDao;
+	TransactionDaoImpl transactionDao;
 	UserServiceImpl userService;
 	EmployeeServiceImpl employeeService;
 	AccountServiceImpl accountService;
@@ -35,15 +37,13 @@ public class BankingApplication {
 		customerDao = new CustomerDaoImpl(properties, data);
 		employeeDao = new EmployeeDaoImpl(properties, data);
 		accountDao = new AccountDaoImpl(properties, data);
+		transactionDao = new TransactionDaoImpl(properties, data);
 		userService = new UserServiceImpl();
 		employeeService = new EmployeeServiceImpl(userDao, customerDao);
-		accountService = new AccountServiceImpl(accountDao);
+		accountService = new AccountServiceImpl(accountDao, transactionDao);
 		loginController = new LoginController(userDao, employeeDao, customerDao);
-		accountController = new AccountController(accountDao);
+		accountController = new AccountController(accountDao, transactionDao);
 		data.generateDefaultData();
-		if(properties.getProperties().get("data-source") == null || !properties.getProperties().get("data-source").equals("file") || !properties.getProperties().get("data-source").equals("database")) {
-			
-		}
 	}
 	
 	public void runApplication() throws Exception {
@@ -262,6 +262,35 @@ public class BankingApplication {
 									System.out.println("Invalid account choice.");
 								}
 							}
+							break;
+						case VIEW_TRANSACTIONS:
+							customer = (Customer) user;
+							customer.setAccounts(accountController.getAccounts(customer));
+							if(customer.getAccounts().isEmpty()) {
+								System.out.println("This user has no accounts, please have an employee add an account.");
+							}
+							else {
+								System.out.println("Please select an account: ");
+								for(int i = 0; i < customer.getAccounts().size(); i++) {
+									System.out.println((i+1)+". "+customer.getAccounts().get(i).getType());
+								}
+								try {
+									int choice = sc.nextInt();
+									sc.nextLine();
+									if(choice <= 0 || choice > customer.getAccounts().size()) {
+										System.out.println("Invalid account choice.");
+									}
+									else {
+										ArrayList<Transaction> transList = transactionDao.getTransactions(customer, customer.getAccounts().get(choice-1));
+										for(Transaction t : transList) {
+											System.out.println(t);
+										}
+									}
+								} catch(InputMismatchException e) {
+									System.out.println("Invalid account choice.");
+								}
+							}
+							
 							break;
 						default:
 							System.out.println(response.getMessage());

@@ -3,21 +3,25 @@ package com.bank.data;
 import java.util.HashMap;
 
 import com.bank.beans.User;
+import com.bank.enums.TransactionType;
 import com.bank.beans.Account;
 import com.bank.beans.Customer;
 import com.bank.beans.Employee;
+import com.bank.beans.Transaction;
 
 public class Database {
 	HashMap<String, User> userList;
 	HashMap<Integer, Customer> customerList;
 	HashMap<Integer, Employee> employeeList;
 	HashMap<Integer, Account> accountList;
+	HashMap<Integer, Transaction> transactionList;
 	
 	public Database() {
 		userList = new HashMap<String, User>();
 		customerList = new HashMap<Integer, Customer>();
 		employeeList = new HashMap<Integer, Employee>();
 		accountList = new HashMap<Integer, Account>();
+		transactionList = new HashMap<Integer, Transaction>();
 		
 	}
 	
@@ -67,11 +71,16 @@ public class Database {
 		return accountList;
 	}
 
-
-
-
 	public void setAccountList(HashMap<Integer, Account> accountList) {
 		this.accountList = accountList;
+	}
+	
+	public HashMap<Integer, Transaction> getTransactionList() {
+		return transactionList;
+	}
+
+	public void setTransactionList(HashMap<Integer, Transaction> transactionList) {
+		this.transactionList = transactionList;
 	}
 
 	public void generateDefaultData(){
@@ -98,6 +107,30 @@ public class Database {
 		accountList.put(2, new Account(2, 100000001, 2, 200, "Savings"));
 		accountList.put(3, new Account(3, 100000002, 3, 300, "Checking"));
 		accountList.put(4, new Account(4, 100003000, 4, 400, "Savings"));
+		//yyyy/MM/dd
+		transactionList.put(1, new Transaction(1, 1, 1,TransactionType.DEPOSIT, 1000, "2019/01/12"));
+		transactionList.put(2, new Transaction(2, 1, 1,TransactionType.WITHDRAW, 500, "2019/01/12"));
+		transactionList.put(3, new Transaction(3, 1, 1,TransactionType.WITHDRAW, 100, "2019/01/12"));
+		transactionList.put(4, new Transaction(4, 1, 1,TransactionType.WITHDRAW, 100, "2019/01/12"));
+		transactionList.put(5, new Transaction(5, 1, 1,TransactionType.WITHDRAW, 200, "2019/01/12"));
+		
+		transactionList.put(6, new Transaction(6, 2,2,TransactionType.DEPOSIT, 1000, "2019/01/12"));
+		transactionList.put(7, new Transaction(7, 2,2,TransactionType.WITHDRAW, 600, "2019/01/12"));
+		transactionList.put(8, new Transaction(8, 2,2,TransactionType.WITHDRAW, 100, "2019/01/12"));
+		transactionList.put(9, new Transaction(9, 2,2,TransactionType.WITHDRAW, 100, "2019/01/12"));
+		transactionList.put(10, new Transaction(10, 2,2,TransactionType.WITHDRAW, 200, "2019/01/12"));
+		
+		transactionList.put(11, new Transaction(11, 3,3,TransactionType.DEPOSIT, 1000, "2019/01/12"));
+		transactionList.put(12, new Transaction(12, 3,3,TransactionType.WITHDRAW, 700, "2019/01/12"));
+		transactionList.put(13, new Transaction(13, 3,3,TransactionType.WITHDRAW, 100, "2019/01/12"));
+		transactionList.put(14, new Transaction(14, 3,3,TransactionType.WITHDRAW, 100, "2019/01/12"));
+		transactionList.put(15, new Transaction(15, 3,3,TransactionType.WITHDRAW, 200, "2019/01/12"));
+		
+		transactionList.put(16, new Transaction(16, 4,4,TransactionType.DEPOSIT, 1000, "2019/01/12"));
+		transactionList.put(17, new Transaction(17, 4,4,TransactionType.WITHDRAW, 800, "2019/01/12"));
+		transactionList.put(18, new Transaction(18, 4,4,TransactionType.WITHDRAW, 100, "2019/01/12"));
+		transactionList.put(19, new Transaction(19, 4,4,TransactionType.WITHDRAW, 100, "2019/01/12"));
+		transactionList.put(20, new Transaction(20, 4,4,TransactionType.WITHDRAW, 200, "2019/01/12"));
 		
 	}
 }
